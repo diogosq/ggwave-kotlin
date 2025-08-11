@@ -1,6 +1,9 @@
+import java.util.Properties
+
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
+    id("com.vanniktech.maven.publish") version "0.34.0"
 }
 
 android {
@@ -48,3 +51,51 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
 }
+
+//>>>>>>>>>> publish Github config
+val getVersionName = "1.0.0-SNAPSHOT"
+val getArtifactId = "ggwave-kotlin"
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/diogosq/ggwave-kotlin")
+            credentials(PasswordCredentials::class)
+        }
+    }
+}
+mavenPublishing {
+    //For Maven Central
+    publishToMavenCentral(automaticRelease = false)
+    signAllPublications()
+    //For Maven Central
+
+    coordinates("io.github.diogosq", getArtifactId, getVersionName)
+    pom {
+        name.set(getVersionName)
+        description.set("ggwave-kotlin is a Kotlin/Android library that provides a JNI wrapper for the GGWave C++ library")
+        inceptionYear.set("2025")
+        url.set("https://github.com/diogosq/ggwave-kotlin")
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("https://github.com/diogosq/ggwave-kotlin?tab=MIT-1-ov-file")
+            }
+        }
+        scm {
+            url = "https://github.com/diogosq/ggwave-kotlin"
+            connection = "scm:git://github.com/diogosq/ggwave-kotlin.git"
+            developerConnection = "scm:git://github.com/diogosq/ggwave-kotlin.git"
+        }
+        developers {
+            developer {
+                id = "diogosq"
+                name = "Diogo Queiroz"
+                email = "diogosq@gmail.com"
+            }
+        }
+    }
+}
+
+//<<<<<<<<<< publish Github config
