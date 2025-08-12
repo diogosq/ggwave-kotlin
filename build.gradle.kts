@@ -2,6 +2,19 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("com.vanniktech.maven.publish") version "0.34.0"
+    id("org.gradle.jacoco")
+}
+jacoco {
+    toolVersion = "0.8.13"
+    reportsDirectory = layout.buildDirectory.dir("reports/jacoco")
+}
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "net.bytebuddy") {
+            useVersion("1.15.11")
+            because("Jacoco transform compatibility")
+        }
+    }
 }
 
 android {
@@ -98,3 +111,126 @@ mavenPublishing {
 }
 
 //<<<<<<<<<< publish config
+
+// =================================
+// JaCoCo Report Configuration Start
+// =================================
+val jacocoFileFilter = listOf(
+    // Android-specific generated files
+    "**/R.class",
+    "**/R$*.class",
+    "**/BuildConfig.*",
+    "**/Manifest*.*",
+    "**/resources/**",
+    "**/values/**",
+
+    // Test files
+    "**/*Test*.*",
+    "**/*Test$*.*",
+    "**/androidTest/**",
+    "**/test/**",
+
+    // Hilt/Dagger-generated code
+    "**/hilt_aggregated_deps/**",
+    "**/dagger/hilt/internal/**",
+    "**/dagger/hilt/android/internal/**",
+    "**/*_MembersInjector.class",
+    "**/Dagger*Component.class",
+    "**/*Module_*Factory.class",
+    "**/*_Factory.class",
+    "**/*_Provide*Factory.class",
+    "**/*_Impl.class",
+
+    // Kotlin-generated classes
+    "**/*\$Lambda$*.*",
+    "**/*\$inlined$*.*",
+    "**/*\$*.*", // anonymous classes and lambdas
+    "**/Companion.class",
+
+    // Navigation safe args (generated)
+    "**/*Directions*.class",
+    "**/*Args.class",
+
+    // Jetpack Compose compiler-generated
+    "**/*Preview*.*",
+    "**/*ComposableSingletons*.*",
+
+    // Room and other annotation processors
+    "**/*_Impl.class",
+    "**/*Serializer.class", // For Moshi, Retrofit, etc.
+
+    // Miscellaneous
+    "android/**/*.*",
+
+    // Project-specific exclusions
+    // "**/di/**",
+    // "**/state/**",
+    // "**/mapper/**",
+    // "**/domain/**"
+)
+
+tasks.withType(Test::class) {
+    configure<JacocoTaskExtension> {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+    }
+}
+// Register a JacocoReport task for code coverage analysis
+tasks.register<JacocoReport>("JacocoFullCodeCoverage") {
+
+    // Depend on unit tests and Android tests tasks
+    dependsOn(listOf("testDebugUnitTest", "connectedDebugAndroidTest"))
+
+    // Set task grouping and description
+    group = "Reports"
+    description = "Execute UI and unit tests, generate and combine Jacoco coverage report"
+
+    // Configure reports to generate both XML and HTML formats
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+
+    val javaSrc = mutableListOf<String>()
+    val kotlinSrc = mutableListOf<String>()
+    val javaClasses = mutableListOf<FileTree>()
+    val kotlinClasses = mutableListOf<FileTree>()
+    val execution = mutableListOf<FileTree>()
+
+    rootProject.subprojects.forEach { proj ->
+        proj.tasks.findByName("testDebugUnitTest")?.let { dependsOn(it) }
+        proj.tasks.findByName("connectedDebugAndroidTest")?.let { dependsOn(it) }
+
+        javaSrc.add("${proj.projectDir}/src/main/java")
+        kotlinSrc.add("${proj.projectDir}/src/main/kotlin")
+
+        javaClasses.add(proj.fileTree(proj.layout.buildDirectory.dir("intermediates/javac/debug")) {
+            exclude(jacocoFileFilter)
+        })
+
+        kotlinClasses.add(proj.fileTree(proj.layout.buildDirectory.dir("/tmp/kotlin-classes/debug")) {
+            exclude(jacocoFileFilter)
+        })
+
+        execution.add(proj.fileTree(proj.layout.buildDirectory) {
+            include(
+                "jacoco/testDebugUnitTest.exec", // Unit test,
+                "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec", // Unit test
+                "outputs/code_coverage/debugAndroidTest/connected/**/*.ec" // UI test
+            )
+        })
+
+    }
+
+    sourceDirectories.setFrom(files(javaSrc + kotlinSrc))
+    classDirectories.setFrom(files(javaClasses + kotlinClasses))
+    executionData.setFrom(files(execution))
+
+    doLast {
+        println("✅ Combined coverage report generated at: ${reports.html.outputLocation.get()}\\index.html")
+    }
+}
+
+// =================================
+// JaCoCo Report Configuration Start
+// =================================
