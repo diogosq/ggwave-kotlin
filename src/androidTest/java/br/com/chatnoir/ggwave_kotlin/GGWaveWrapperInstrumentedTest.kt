@@ -129,5 +129,29 @@ class GGWaveWrapperInstrumentedTest {
         val payloadSize: Int,
         val protocolId: Int,
         val volume: Int
-    )
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as EncodeTestParams
+
+            if (instance != other.instance) return false
+            if (payloadSize != other.payloadSize) return false
+            if (protocolId != other.protocolId) return false
+            if (volume != other.volume) return false
+            if (!payload.contentEquals(other.payload)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = instance.hashCode()
+            result = 31 * result + payloadSize
+            result = 31 * result + protocolId
+            result = 31 * result + volume
+            result = 31 * result + payload.contentHashCode()
+            return result
+        }
+    }
 }

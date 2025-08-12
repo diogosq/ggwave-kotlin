@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-@Suppress("unused")
 class GGWaveCodec private constructor(
     private val params: GGWaveParameters,
     private val protocolId: Int,
