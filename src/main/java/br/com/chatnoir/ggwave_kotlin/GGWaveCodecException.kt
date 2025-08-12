@@ -1,6 +1,5 @@
 package br.com.chatnoir.ggwave_kotlin
 
-@Suppress("unused")
 class GGWaveCodecException : Exception {
     constructor() : super()
     constructor(message: String) : super(message)
