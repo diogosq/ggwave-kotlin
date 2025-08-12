@@ -1,5 +1,3 @@
-import java.util.Properties
-
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
@@ -9,6 +7,7 @@ plugins {
 android {
     namespace = "br.com.chatnoir.ggwave_kotlin"
     compileSdk = 36
+    ndkVersion = " 28.2.13676358"
 
     defaultConfig {
         minSdk = 23
@@ -52,8 +51,8 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
 }
 
-//>>>>>>>>>> publish Github config
-val getVersionName = "1.0.0-SNAPSHOT"
+//>>>>>>>>>> publish config
+val getVersionName = "0.8.0-SNAPSHOT"
 val getArtifactId = "ggwave-kotlin"
 
 publishing {
@@ -98,4 +97,4 @@ mavenPublishing {
     }
 }
 
-//<<<<<<<<<< publish Github config
+//<<<<<<<<<< publish config
