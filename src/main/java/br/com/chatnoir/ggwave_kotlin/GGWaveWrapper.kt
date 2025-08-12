@@ -1,8 +1,16 @@
 package br.com.chatnoir.ggwave_kotlin
 
+import kotlin.system.exitProcess
+
 object GGWaveWrapper {
     init {
-        System.loadLibrary("ggwave_jni")
+        try {
+            System.loadLibrary("ggwave_jni")
+        } catch (e: UnsatisfiedLinkError) {
+            System.err.println("Native code library failed to load.")
+            System.err.println("$e")
+            exitProcess(1)
+        }
     }
 
     external fun getDefaultParameters(): GGWaveParameters
@@ -17,6 +25,7 @@ object GGWaveWrapper {
         waveform: ByteArray,
         query: Int
     ): Int
+
     external fun decode(
         instance: Long,
         waveform: ByteArray,
@@ -60,7 +69,7 @@ object GGWaveProtocolId {
  *  if != 0, do not perform encoding.
  *  if == 1, return waveform size in bytes
  */
-object GGWaveQuery{
+object GGWaveQuery {
     const val NONE = 0
     const val WAVEFORM_SIZE = 1
 }

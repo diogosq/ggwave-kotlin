@@ -9,9 +9,10 @@ import android.media.MediaRecorder
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 @Suppress("unused")
 class GGWaveCodec private constructor(
@@ -103,11 +104,13 @@ class GGWaveCodec private constructor(
 
     suspend fun encodeAndPlay(
         message: String,
+        playFinished: () -> Unit = {},
+        periodicNotification: (track: AudioTrack?) -> Unit = { _ -> }
     ) {
         var audioTrack: AudioTrack? = null
-
+        val mutex = Mutex()
         try {
-
+            mutex.lock()
             encode(message) { waveform, durationMs ->
                 audioTrack = AudioTrack.Builder()
                     .setAudioAttributes(
@@ -127,14 +130,31 @@ class GGWaveCodec private constructor(
                     .setTransferMode(AudioTrack.MODE_STREAM)
                     .build()
 
+                audioTrack.setNotificationMarkerPosition(waveform.size / 2)
+
+                audioTrack.setPlaybackPositionUpdateListener(object : AudioTrack.OnPlaybackPositionUpdateListener {
+                    override fun onMarkerReached(track: AudioTrack?) {
+                        Log.d("GGWave", "onMarkerReached")
+                        if (mutex.isLocked) mutex.unlock()
+                        playFinished()
+                    }
+
+                    override fun onPeriodicNotification(track: AudioTrack?) {
+                        periodicNotification(track)
+                    }
+
+                })
+                audioTrack.play()
                 audioTrack.write(waveform, 0, waveform.size)
 
-                audioTrack.play()
-                delay(durationMs)
+                mutex.withLock {
+                    Log.d("GGWave", "onMarkerReached called, finish")
+                }
             }
         } catch (ex: Exception) {
             GGWaveCodecException("transmitGGWave error", ex)
         } finally {
+            if (mutex.isLocked) mutex.unlock()
             audioTrack?.release()
         }
 

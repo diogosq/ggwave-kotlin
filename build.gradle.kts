@@ -1,3 +1,4 @@
+//noinspection UseTomlInstead
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
@@ -35,6 +36,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            enableAndroidTestCoverage = true
+            enableUnitTestCoverage = true
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -53,15 +58,30 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/LICENSE.md",
+                "META-INF/LICENSE-notice.md"
+            )
+        }
+    }
 }
 
 dependencies {
     implementation("androidx.core:core-ktx:1.16.0")
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("com.google.android.material:material:1.12.0")
+    implementation("androidx.test:rules:1.7.0")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("io.mockk:mockk:1.14.5")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+
+    androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
+    androidTestImplementation("io.mockk:mockk-android:1.14.5")
 }
 
 //>>>>>>>>>> publish config
@@ -197,7 +217,7 @@ tasks.register<JacocoReport>("JacocoFullCodeCoverage") {
     val kotlinClasses = mutableListOf<FileTree>()
     val execution = mutableListOf<FileTree>()
 
-    rootProject.subprojects.forEach { proj ->
+    rootProject.subprojects.filter { it.name == "ggwave-kotlin" }.forEach { proj ->
         proj.tasks.findByName("testDebugUnitTest")?.let { dependsOn(it) }
         proj.tasks.findByName("connectedDebugAndroidTest")?.let { dependsOn(it) }
 

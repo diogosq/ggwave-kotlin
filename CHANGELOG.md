@@ -6,6 +6,7 @@ markdown
 - Initial code.
 - Configured Maven Central publish plugin.
 - Configured Jacoco code coverage analysis.
+- Added unit tests and instrumented tests 
 ### Fixed
 - 16Kb pagination native lib.
 
