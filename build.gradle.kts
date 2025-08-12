@@ -85,7 +85,7 @@ dependencies {
 }
 
 //>>>>>>>>>> publish config
-val getVersionName = "0.8.0-SNAPSHOT"
+val getVersionName = "1.0.0"
 val getArtifactId = "ggwave-kotlin"
 
 publishing {
