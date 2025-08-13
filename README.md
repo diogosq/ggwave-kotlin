@@ -1,4 +1,7 @@
 # ggwave-kotlin
+[![](https://img.shields.io/badge/Version-1.0.0-blue.svg?style=flat)]()
+[![](https://img.shields.io/badge/platform-android-green.svg)](http://developer.android.com/index.html)
+[![](https://img.shields.io/badge/API-23%2B-green.svg)](https://android-arsenal.com/api?level=21)
 
 ggwave-kotlin is a Kotlin/Android library that provides a JNI wrapper for the [GGWave](https://github.com/ggerganov/ggwave) C++ library, enabling data-over-sound communication in Android applications using FSK-based transmission protocol implemented by ggwave. It allows you to encode and decode short messages using sound waves.
 
